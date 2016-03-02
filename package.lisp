@@ -1,0 +1,12 @@
+;;;; package.lisp
+
+(defpackage #:clack-pretend
+  (:use #:cl #:lack.component #:lack.request #:gadgets)
+  (:export
+   #:clack-pretend
+   #:last-input
+   #:last-request-object
+   #:last-request-url
+   #:pretend-builder
+   #:run-pretend))
+
