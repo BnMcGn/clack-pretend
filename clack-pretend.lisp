@@ -8,26 +8,10 @@
 (defparameter *pretend-storage-size* 10)
 (defvar *pretend-storage* nil)
 
-#|
-(defclass clack-pretend (lack.component:lack-component)
-  ((watch-symbols :type list
-                  :initarg :watch-symbols
-                  :initform nil)))
-
-(defmethod call ((this clack-pretend) env)
-  (when (< *pretend-storage-size* (length *pretend-storage*))
-    (setf *pretend-storage*
-          (subseq *pretend-storage* 0 (1- *pretend-storage-size*))))
-  (push (make-hash-table) *pretend-storage*)
-  (setf (gethash :input (car *pretend-storage*)) env)
-  (dolist (sym (slot-value this 'watch-symbols))
-    (setf (gethash sym (car *pretend-storage*)) (symbol-value sym)))
-  (let ((inner (call-next this env)))
-    (setf (gethash :output (car *pretend-storage*)) inner)
-    inner))
-|#
+(defvar *pretend-app-chain*)
 
 (defun pretend-component (app watch-symbols)
+  (setf *pretend-app-chain* app)
   (lambda (env)
     (when (< *pretend-storage-size* (length *pretend-storage*))
       (setf *pretend-storage*
@@ -58,21 +42,14 @@
      (getf req :request-uri))))
 
 ;FIXME: should emit info about where listener will be placed.
-(defvar *pretend-app-chain*)
 (defmacro pretend-builder ((&key (insert 0) watch-symbols)
                            &rest middles-and-app)
-  `(progn
-     (setf *pretend-app-chain*
-           (lack.builder:builder
-            ,@(subseq middles-and-app insert)))
-     (lack.builder:builder
-      ,@(concatenate 'list
-         (subseq middles-and-app 0 insert)
-         `((lambda (app)
-             (pretend-component app ',watch-symbols)))
-         ;`((make-instance 'clack-pretend ,@(when watch-symbols
-         ;                        (list :watch-symbols watch-symbols))))
-         (subseq middles-and-app insert)))))
+  `(lack.builder:builder
+    ,@(concatenate 'list
+                   (subseq middles-and-app 0 insert)
+                   `((lambda (app)
+                       (pretend-component app ',watch-symbols)))
+                   (subseq middles-and-app insert))))
 
 (defun run-pretend (&optional (index 0))
   (declare (type integer index))
