@@ -17,7 +17,7 @@
       (setf *pretend-storage*
             (subseq *pretend-storage* 0 (1- *pretend-storage-size*))))
     (push (make-hash-table) *pretend-storage*)
-    (setf (gethash :input (car *pretend-storage*)) env)
+    (setf (gethash :input (car *pretend-storage*)) (copy-list env))
     (dolist (sym watch-symbols)
       (setf (gethash sym (car *pretend-storage*)) (symbol-value sym)))
     (let ((inner (funcall app env)))
