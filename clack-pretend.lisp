@@ -27,6 +27,9 @@
 (defun last-input (&optional (index 0))
   (gethash :input (elt *pretend-storage* index)))
 
+(defun last-output (&optional (index 0))
+  (gethash :output (elt *pretend-storage* index)))
+
 (defun last-request-object (&optional (index 0))
   (lack.request:make-request (last-input index)))
 

@@ -9,5 +9,6 @@
    #:last-request-url
    #:pretend-builder
    #:run-pretend
-   #:last-session))
+   #:last-session
+   #:last-output))
 
