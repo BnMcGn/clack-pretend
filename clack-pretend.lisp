@@ -41,6 +41,14 @@
               (format nil ":~d" it)))
      (getf req :request-uri))))
 
+(defun last-session (&optional (index 0))
+  (let ((input (last-input index)))
+    (anaphora:aif (getf input :lack.session)
+                  anaphora:it
+                  (if (assoc :lack.session (getf input :cookies))
+                      (error "Session not found, but lack.session cookie is set. Try running pretend-builder with a higher :insert setting")
+                      (error "Session not found.")))))
+
 ;FIXME: should emit info about where listener will be placed.
 (defmacro pretend-builder ((&key (insert 0) watch-symbols)
                            &rest middles-and-app)

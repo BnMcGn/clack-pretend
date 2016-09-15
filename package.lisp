@@ -8,5 +8,6 @@
    #:last-request-object
    #:last-request-url
    #:pretend-builder
-   #:run-pretend))
+   #:run-pretend
+   #:last-session))
 
