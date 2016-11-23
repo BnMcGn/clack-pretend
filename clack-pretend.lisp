@@ -52,6 +52,18 @@
                       (error "Session not found, but lack.session cookie is set. Try running pretend-builder with a higher :insert setting")
                       (error "Session not found.")))))
 
+(defun last-as-code (&optional (index 0))
+  (let ((last (elt *pretend-storage* index)))
+    `(hu:plist->hash
+      :input
+      ,(mapcar
+        (lambda (x)
+          (if (hash-table-p x)
+              (hash-table->source x)
+              x))
+        (gethash :input last))
+      :output ,(gethash :output last))))
+
 ;FIXME: should emit info about where listener will be placed.
 (defmacro pretend-builder ((&key (insert 0) watch-symbols)
                            &rest middles-and-app)
