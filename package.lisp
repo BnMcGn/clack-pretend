@@ -10,5 +10,7 @@
    #:pretend-builder
    #:run-pretend
    #:last-session
-   #:last-output))
+   #:last-output
+   #:last-as-code
+   #:quick-summary))
 

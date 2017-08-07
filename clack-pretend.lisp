@@ -55,14 +55,21 @@
 (defun last-as-code (&optional (index 0))
   (let ((last (elt *pretend-storage* index)))
     `(hu:plist->hash
-      :input
-      ,(mapcar
-        (lambda (x)
-          (if (hash-table-p x)
-              (hash-table->source x)
-              x))
-        (gethash :input last))
-      :output ,(gethash :output last))))
+      (list
+       :input
+       ,(mapcar
+         (lambda (x)
+           (if (hash-table-p x)
+               (hash-table->source x)
+               x))
+         (gethash :input last))
+       :output ,(gethash :output last)))))
+
+(defun quick-summary ()
+  (mapcar
+   (lambda (inp)
+     (getf (gethash :input inp) :request-uri))
+   *pretend-storage*))
 
 ;FIXME: should emit info about where listener will be placed.
 (defmacro pretend-builder ((&key (insert 0) watch-symbols)
@@ -74,12 +81,15 @@
                        (pretend-component app ',watch-symbols)))
                    (subseq middles-and-app insert))))
 
-(defun run-pretend (&optional (index 0))
+(defun run-pretend (&key (index 0) path-info)
   (declare (type integer index))
   (unless (< (1+ index) (length *pretend-storage*))
     (error "Session not found. Index too high or no sessions stored yet."))
   (unless (functionp *pretend-app-chain*)
     (error "Can't find a webapp to run."))
-  (funcall *pretend-app-chain*
-           (gethash :input (elt *pretend-storage* index))))
+  (let ((env (gethash :input (elt *pretend-storage* index))))
+    (when path-info
+      (push path-info env)
+      (push :path-info env))
+    (funcall *pretend-app-chain* env)))
 
