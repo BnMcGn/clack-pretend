@@ -6,7 +6,6 @@
   :license "Specify license here"
   :depends-on (#:clack
                #:alexandria
-               #:anaphora
                #:gadgets
                #:lack-request)
   :serial t

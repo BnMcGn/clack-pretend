@@ -46,11 +46,10 @@
 
 (defun last-session (&optional (index 0))
   (let ((input (last-input index)))
-    (anaphora:aif (getf input :lack.session)
-                  anaphora:it
-                  (if (assoc :lack.session (getf input :cookies))
-                      (error "Session not found, but lack.session cookie is set. Try running pretend-builder with a higher :insert setting")
-                      (error "Session not found.")))))
+    (or (getf input :lack.session)
+        (if (assoc :lack.session (getf input :cookies))
+            (error "Session not found, but lack.session cookie is set. Try running pretend-builder with a higher :insert setting")
+            (error "Session not found.")))))
 
 (defun last-as-code (&optional (index 0))
   (let ((last (elt *pretend-storage* index)))
