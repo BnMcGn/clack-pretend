@@ -35,13 +35,15 @@
 
 (defun last-request-url ()
   (let ((req (last-input)))
-    (strcat
-     (format nil "~a://" (string-downcase (mkstr (or (getf req :url-scheme)
-                                                     (getf req :uri-scheme)))))
+    (concatenate
+     'string
+     (format nil "~a://" (string-downcase (princ-to-string
+                                           (or (getf req :url-scheme)
+                                               (getf req :uri-scheme)))))
      (getf req :server-name)
-     (awhen (getf req :server-port)
-            (unless (= 80 it)
-              (format nil ":~d" it)))
+     (when-let ((port (getf req :server-port)))
+       (unless (= 80 port)
+         (format nil ":~d" port)))
      (getf req :request-uri))))
 
 (defun last-session (&optional (index 0))
@@ -50,6 +52,11 @@
         (if (assoc :lack.session (getf input :cookies))
             (error "Session not found, but lack.session cookie is set. Try running pretend-builder with a higher :insert setting")
             (error "Session not found.")))))
+
+(defun hash-table->source (ht)
+  "Returns a source code representation of a hash table."
+  `(hu:alist->hash ',(hu:hash->alist ht)
+                :existing (make-hash-table :test #',(hash-table-test ht))))
 
 (defun last-as-code (&optional (index 0))
   (let ((last (elt *pretend-storage* index)))

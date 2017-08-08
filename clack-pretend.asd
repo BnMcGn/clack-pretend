@@ -7,7 +7,8 @@
   :depends-on (#:clack
                #:alexandria
                #:gadgets
-               #:lack-request)
+               #:lack-request
+               #:cl-hash-util)
   :serial t
   :components ((:file "package")
                (:file "clack-pretend")))

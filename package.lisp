@@ -1,7 +1,7 @@
 ;;;; package.lisp
 
 (defpackage #:clack-pretend
-  (:use #:cl #:lack.component #:lack.request #:gadgets)
+  (:use #:cl #:lack.component #:lack.request #:alexandria)
   (:export
    #:clack-pretend
    #:last-input
