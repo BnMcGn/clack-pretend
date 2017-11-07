@@ -2,7 +2,7 @@
 
 Are you tired of jumping to your web browser every time you need to test your work in Clack? Clack-pretend will capture and replay calls to your clack middleware stack. When developing a web application with clack, you will often find it inconvenient to run your code from the lisp REPL because it expects a clack environment, including perhaps, cookies or a logged-in user. With clack-pretend, you can run prior web requests from your REPL, moving development back where it belongs.
 
-# Setup
+## Setup
 
 First, replace lack:builder or clack:builder:
 
@@ -29,13 +29,13 @@ The collection point will be inserted just after the session middleware, and jus
 
 To use clack-pretend, restart your clack app and visit a page with your web browser.
 
-# Quick summary
+## Quick summary
 
     (quick-summary)
 
 This function gives a list of URLs that have been captured.
 
-# Info functions
+## Info functions
 
 Most of the info functions hava an optional parameter named index. The default is 0, or the last request received by the stack. By default clack-pretend stores up to 10 requests. Higher indices retrieve older requests.
 
@@ -63,20 +63,20 @@ The session object from the last request.
 
 Attempts to output the last environment and session as usable source code. This is useful for turning a web request into something usable as a unit test for your middleware.
 
-# Running your last request
+## Running your last request
 
     > (run-pretend)
 
 Runs the last web request starting below the insert point with the saved environment information from above the insert point.
 
-# Author
+## Author
 
 Ben McGunigle (bnmcgn at gmail.com)
 
-# Copyright
+## Copyright
 
 Copyright (c) 2017 Ben McGunigle
 
-# License
+## License
 
 Apache License version 2.0
