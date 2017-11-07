@@ -1,9 +1,9 @@
 ;;;; clack-pretend.asd
 
 (asdf:defsystem #:clack-pretend
-  :description "Describe clack-pretend here"
-  :author "Your Name <your.name@example.com>"
-  :license "Specify license here"
+  :description "A testing and debugging tool for Clack"
+  :author "Ben McGunigle <bnmcgn@gmail.com>"
+  :license "Apache License, version 2.0"
   :depends-on (#:clack
                #:alexandria
                #:lack-request

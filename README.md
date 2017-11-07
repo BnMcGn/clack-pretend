@@ -1,4 +1,4 @@
-# Clack-pretend: a testing and debugging tool for clack.
+# Clack-pretend: a testing and debugging tool for Clack.
 
 Are you tired of jumping to your web browser every time you need to test your work in Clack? Clack-pretend will capture and replay calls to your clack middleware stack. When developing a web application with clack, you will often find it inconvenient to run your code from the lisp REPL because it expects a clack environment, including perhaps, cookies or a logged-in user. With clack-pretend, you can run prior web requests from your REPL, moving development back where it belongs.
 
