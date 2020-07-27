@@ -12,5 +12,7 @@
    #:last-session
    #:last-output
    #:last-as-code
-   #:quick-summary))
+   #:quick-summary
+   #:verbose-builder
+   #:verbose-component))
 

@@ -25,7 +25,8 @@
       inner)))
 
 (defun last-input (&optional (index 0))
-  (gethash :input (elt *pretend-storage* index)))
+  ;;Some middleware, such as :mount, will edit the env, causing later runs to fail
+  (copy-list (gethash :input (elt *pretend-storage* index))))
 
 (defun last-output (&optional (index 0))
   (gethash :output (elt *pretend-storage* index)))
@@ -87,15 +88,29 @@
                        (pretend-component app ',watch-symbols)))
                    (subseq middles-and-app insert))))
 
-(defun run-pretend (&key (index 0) path-info)
+(defun run-pretend (&key (index 0) path-info (app-chain *pretend-app-chain*))
   (declare (type integer index))
   (unless (< (1+ index) (length *pretend-storage*))
     (error "Session not found. Index too high or no sessions stored yet."))
-  (unless (functionp *pretend-app-chain*)
+  (unless (functionp app-chain)
     (error "Can't find a webapp to run."))
-  (let ((env (gethash :input (elt *pretend-storage* index))))
+  (let ((env (last-input index)))
     (when path-info
       (push path-info env)
       (push :path-info env))
-    (funcall *pretend-app-chain* env)))
+    (funcall app-chain env)))
+
+(defun verbose-component (message)
+  (lambda (app)
+    (lambda (env)
+      (print message)
+      (funcall app env))))
+
+(defmacro verbose-builder (&rest middles-and-app)
+  (let ((accum nil))
+    (dolist (itm middles-and-app)
+      (push `(verbose-component "Component reached") accum)
+      (push itm accum))
+    `(lack.builder:builder
+      ,@(nreverse accum))))
 
