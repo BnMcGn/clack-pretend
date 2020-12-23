@@ -7,6 +7,7 @@
   :depends-on (#:clack
                #:alexandria
                #:lack-request
+               #:circular-streams
                #:cl-hash-util)
   :serial t
   :components ((:file "package")

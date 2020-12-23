@@ -17,6 +17,9 @@
       (setf *pretend-storage*
             (subseq *pretend-storage* 0 (1- *pretend-storage-size*))))
     (push (make-hash-table) *pretend-storage*)
+    ;; Need this to rerun POST requests. Normally this is done in lack.request
+    (unless (typep (getf env :raw-body) 'circular-streams:circular-input-stream)
+      (setf (getf env :raw-body) (circular-streams:make-circular-input-stream (getf env :raw-body))))
     (setf (gethash :input (car *pretend-storage*)) (copy-list env))
     (dolist (sym watch-symbols)
       (setf (gethash sym (car *pretend-storage*)) (symbol-value sym)))
