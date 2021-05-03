@@ -7,25 +7,41 @@
 
 (defparameter *pretend-storage-size* 10)
 (defvar *pretend-storage* nil)
+(defvar *logfile* nil)
+(defvar *watch-symbols* nil)
 
 (defvar *pretend-app-chain*)
 
-(defun pretend-component (app watch-symbols)
-  (setf *pretend-app-chain* app)
-  (lambda (env)
-    (when (< *pretend-storage-size* (length *pretend-storage*))
-      (setf *pretend-storage*
-            (subseq *pretend-storage* 0 (1- *pretend-storage-size*))))
-    (push (make-hash-table) *pretend-storage*)
-    ;; Need this to rerun POST requests. Normally this is done in lack.request
-    (unless (typep (getf env :raw-body) 'circular-streams:circular-input-stream)
-      (setf (getf env :raw-body) (circular-streams:make-circular-input-stream (getf env :raw-body))))
-    (setf (gethash :input (car *pretend-storage*)) (copy-list env))
-    (dolist (sym watch-symbols)
-      (setf (gethash sym (car *pretend-storage*)) (symbol-value sym)))
-    (let ((inner (funcall app env)))
-      (setf (gethash :output (car *pretend-storage*)) inner)
-      inner)))
+(defun store-results (input output)
+  (when (< *pretend-storage-size* (length *pretend-storage*))
+    (setf *pretend-storage*
+          (subseq *pretend-storage* 0 (1- *pretend-storage-size*))))
+  (push (make-hash-table) *pretend-storage*)
+  (dolist (sym *watch-symbols*)
+    (setf (gethash sym (car *pretend-storage*)) (symbol-value sym)))
+  (setf (gethash :input (car *pretend-storage*)) input)
+  (setf (gethash :output (car *pretend-storage*)) output)
+  (when *logfile*
+    (with-open-file (s *logfile* :direction :output :if-exists :append :if-does-not-exist :create)
+      (princ "Clack-pretend request dump:")
+      (princ (last-as-code)))))
+
+(defun pretend-component (app watch-symbols error-only logfile)
+  (let ((*watch-symbols* watch-symbols)
+        (*logfile* logfile))
+    (lambda (env)
+      ;; Need this to rerun POST requests. Normally this is done in lack.request
+      (unless (typep (getf env :raw-body) 'circular-streams:circular-input-stream)
+        (setf (getf env :raw-body) (circular-streams:make-circular-input-stream (getf env :raw-body))))
+      (let* ((input (copy-list env))
+             (output (handler-case (funcall app env)
+                       (error (c)
+                         (store-results input c)
+                         (error c)))))
+        (if error-only
+            (when (and (listp output) (integerp (car output)) (< 499 (car output) 600))
+              (store-results input output))
+            (store-results input output))))))
 
 (defun last-input (&optional (index 0))
   ;;Some middleware, such as :mount, will edit the env, causing later runs to fail
@@ -82,13 +98,13 @@
    *pretend-storage*))
 
 ;FIXME: should emit info about where listener will be placed.
-(defmacro pretend-builder ((&key (insert 0) watch-symbols)
+(defmacro pretend-builder ((&key (insert 0) watch-symbols errors-only logfile)
                            &rest middles-and-app)
   `(lack.builder:builder
     ,@(concatenate 'list
                    (subseq middles-and-app 0 insert)
                    `((lambda (app)
-                       (pretend-component app ',watch-symbols)))
+                       (pretend-component app ',watch-symbols ,errors-only ,logfile)))
                    (subseq middles-and-app insert))))
 
 (defun run-pretend (&key (index 0) path-info (app-chain *pretend-app-chain*))
