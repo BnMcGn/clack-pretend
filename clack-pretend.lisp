@@ -23,25 +23,30 @@
   (setf (gethash :output (car *pretend-storage*)) output)
   (when *logfile*
     (with-open-file (s *logfile* :direction :output :if-exists :append :if-does-not-exist :create)
-      (princ "Clack-pretend request dump:")
-      (princ (last-as-code)))))
+      (terpri s)
+      (princ "Clack-pretend request dump:" s)
+      (terpri s)
+      (princ (last-as-code) s))))
 
 (defun pretend-component (app watch-symbols error-only logfile)
-  (let ((*watch-symbols* watch-symbols)
-        (*logfile* logfile))
-    (lambda (env)
-      ;; Need this to rerun POST requests. Normally this is done in lack.request
-      (unless (typep (getf env :raw-body) 'circular-streams:circular-input-stream)
-        (setf (getf env :raw-body) (circular-streams:make-circular-input-stream (getf env :raw-body))))
-      (let* ((input (copy-list env))
-             (output (handler-case (funcall app env)
-                       (error (c)
-                         (store-results input c)
-                         (error c)))))
-        (if error-only
-            (when (and (listp output) (integerp (car output)) (< 499 (car output) 600))
-              (store-results input output))
-            (store-results input output))))))
+  (lambda (env)
+    ;; Need this to rerun POST requests. Normally this is done in lack.request
+    (unless (typep (getf env :raw-body) 'circular-streams:circular-input-stream)
+      (setf (getf env :raw-body) (circular-streams:make-circular-input-stream (getf env :raw-body))))
+    (let* ((*watch-symbols* watch-symbols)
+           (*logfile* logfile)
+           (input (copy-list env))
+           (output (handler-case (funcall app env)
+                     (error (c)
+                       (store-results input c)
+                       (error c)))))
+      (if error-only
+          (if (and (listp output) (integerp (car output)) (< 499 (car output) 600))
+              (progn (store-results input output)
+                     output)
+              output)
+          (progn (store-results input output)
+                 output)))))
 
 (defun last-input (&optional (index 0))
   ;;Some middleware, such as :mount, will edit the env, causing later runs to fail
