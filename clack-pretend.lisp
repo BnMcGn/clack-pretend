@@ -24,11 +24,12 @@
   (when *logfile*
     (with-open-file (s *logfile* :direction :output :if-exists :append :if-does-not-exist :create)
       (terpri s)
-      (princ "Clack-pretend request dump:" s)
+      (print "Clack-pretend request dump:" s)
       (terpri s)
-      (princ (last-as-code) s))))
+      (print (last-as-code) s))))
 
 (defun pretend-component (app watch-symbols error-only logfile)
+  (setf *pretend-app-chain* app)
   (lambda (env)
     ;; Need this to rerun POST requests. Normally this is done in lack.request
     (unless (typep (getf env :raw-body) 'circular-streams:circular-input-stream)
