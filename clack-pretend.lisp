@@ -37,10 +37,10 @@
     (let* ((*watch-symbols* watch-symbols)
            (*logfile* logfile)
            (input (copy-list env))
-           (output (handler-case (funcall app env)
-                     (error (c)
-                       (store-results input c)
-                       (error c)))))
+           (output (handler-bind
+                       ;;We decline to handle, but store results before doing so
+                       ((error (lambda (c) (store-results input c))))
+                     (funcall app env))))
       (if error-only
           (if (and (listp output) (integerp (car output)) (< 499 (car output) 600))
               (progn (store-results input output)
